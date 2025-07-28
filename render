@@ -1,0 +1,13 @@
+services:
+  - type: worker          # no public web port
+    name: btc-dominance-bot
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
+      - key: TOKEN
+        sync: false       # you’ll set these in the dashboard
+      - key: CHAT_ID
+        sync: false
+      - key: THREAD_ID
+        sync: false
