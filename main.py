@@ -1,12 +1,14 @@
 import os, requests, time, schedule
 
-TOKEN      = os.getenv("TELEGRAM_TOKEN")
+TOKEN      = os.getenv("TOKEN")           # <— read from env
 CHAT_ID    = int(os.getenv("CHAT_ID"))
 THREAD_ID  = int(os.getenv("THREAD_ID"))
 
 def btc_dominance_gecko() -> float:
     url = "https://api.coingecko.com/api/v3/global"
-    return float(requests.get(url, timeout=10).json()["data"]["market_cap_percentage"]["btc"])
+    return float(
+        requests.get(url, timeout=10).json()["data"]["market_cap_percentage"]["btc"]
+    )
 
 def send_tg(text: str):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -26,6 +28,7 @@ def job():
     elif dom <= 55:
         send_tg("⚠️ *ALERT* BTC dominance ≤ 55%")
 
+# start-up
 job()
 schedule.every(59).minutes.do(job)
 
