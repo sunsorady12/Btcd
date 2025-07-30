@@ -1,4 +1,6 @@
-python-telegram-bot==20.*
-requests
-gunicorn
 flask
+python-telegram-bot
+pandas
+numpy
+matplotlib
+requests
