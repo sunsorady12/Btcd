@@ -29,7 +29,7 @@ def big_liquidations():
         r = requests.get(url, params=params, timeout=15).json()
         if isinstance(r, dict):
             return []  # API error
-        return [x for x in r if float(x["executedQty"]) >= 100_000]  # ≥ 100 k USD
+       return [x for x in r if float(x["executedQty"]) * float(x["price"]) >= 10_000]
     except Exception as e:
         logging.warning("Binance liquidations fetch failed: %s", e)
         return []
