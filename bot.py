@@ -30,17 +30,29 @@ def ping():
 # Initialize Telegram bot
 bot = Bot(token=TOKEN)
 
-def fetch_liquidations(hours=12):
-    url = "https://open-api.coinglass.com/public/v2/liquidation_top"
-    headers = {"coinglassSecret": os.getenv("COINGLASS_KEY")}
+def fetch_liquidations():
+    url = "https://open-api.coinglass.com/public/v2/liquidation"
+    headers = {
+        "accept": "application/json",
+        "coinglassSecret": "YOUR_API_KEY"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    # 🔍 Add this part for debugging
+    print("Response Status Code:", response.status_code)
+    print("Response Content:", response.text)
+
     try:
-        r = requests.get(url, params={"time_type": "12h", "limit": 100}, headers=headers, timeout=15)
-        r.raise_for_status()
-        data = r.json()["data"]
-        # map as needed...
+        json_response = response.json()
+        data = json_response.get("data")
+        if not data:
+            print("❌ 'data' key not found in response.")
+            return
+        # continue processing `data` safely
     except Exception as e:
-        logger.error("Coinglass fetch failed: %s", e)
-        return []
+        print("🔥 Error parsing Coinglass response:", e)
+
 
 def find_largest_liquidation(liquidations):
     """Find the largest liquidation by USD value"""
