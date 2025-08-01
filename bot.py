@@ -31,33 +31,15 @@ def ping():
 bot = Bot(token=TOKEN)
 
 def fetch_liquidations(hours=12):
-    """Fetch liquidations from the last N hours"""
-    url = "https://fapi.binance.com/fapi/v1/forceOrders"
-    end_time = int(time.time() * 1000)
-    start_time = end_time - (hours * 3600 * 1000)
-    
+    url = "https://open-api.coinglass.com/public/v2/liquidation_top"
+    headers = {"coinglassSecret": os.getenv("COINGLASS_KEY")}
     try:
-        # Fetch maximum allowed records (1000)
-        response = requests.get(url, params={"limit": 1000}, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-        
-        if isinstance(data, dict) and 'code' in data:
-            logger.error(f"Binance API error: {data.get('msg', 'Unknown error')}")
-            return []
-        
-        # Filter liquidations from the last N hours
-        recent_liquidations = [
-            x for x in data
-            if start_time <= x["time"] <= end_time
-        ]
-        
-        return recent_liquidations
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Binance fetch failed: {str(e)}")
-        return []
+        r = requests.get(url, params={"time_type": "12h", "limit": 100}, headers=headers, timeout=15)
+        r.raise_for_status()
+        data = r.json()["data"]
+        # map as needed...
     except Exception as e:
-        logger.error(f"Unexpected error in fetch_liquidations: {str(e)}")
+        logger.error("Coinglass fetch failed: %s", e)
         return []
 
 def find_largest_liquidation(liquidations):
