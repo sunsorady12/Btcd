@@ -30,29 +30,31 @@ def ping():
 # Initialize Telegram bot
 bot = Bot(token=TOKEN)
 
-def fetch_liquidations(hours=1):
-    url = f"https://open-api.coinglass.com/public/v2/liquidation?timeType={hours}"
-    headers = {
-        "accept": "application/json",
-        "coinglassSecret": "YOUR_API_KEY"  # Replace with your actual key
-    }
+def fetch_liquidations(hours=12):
+    """Fetch liquidations from Bybit (no API key needed)."""
+    url = "https://api.bybit.com/v2/public/liq-records"
+    cutoff = int((time.time() - hours * 3600) * 1000)
 
     try:
-        response = requests.get(url, headers=headers)
-        print("Status Code:", response.status_code)
-        print("Response:", response.text)
+        r = requests.get(url, params={"limit": 1000}, timeout=15)
+        r.raise_for_status()
+        raw = r.json().get("result", [])
 
-        json_response = response.json()
-        data = json_response.get("data")
-        if not data:
-            print("❌ 'data' key not found in response.")
-            return []
-        
-        # Return or process the data as needed
-        return data
-
+        # Map Bybit fields to the keys your bot already expects
+        out = []
+        for x in raw:
+            if x["time"] < cutoff:
+                continue
+            out.append({
+                "symbol":      x["symbol"],
+                "side":        "SELL" if x["side"] == "Buy" else "BUY",  # Bybit is inverted
+                "executedQty": str(x["qty"]),
+                "price":       str(x["price"]),
+                "time":        x["time"]
+            })
+        return out
     except Exception as e:
-        print("🔥 Coinglass fetch failed:", e)
+        logger.error("Bybit fetch failed: %s", e)
         return []
 def find_largest_liquidation(liquidations):
     """Find the largest liquidation by USD value"""
